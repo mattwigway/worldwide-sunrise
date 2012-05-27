@@ -7,7 +7,8 @@
 //    sunrise = {};
 
 Sunrise = function (element, lat, lng, year) {
-    this.width = 900; 
+    var instance = this;
+    this.width = 940; 
     this.height = 600;
     this.lat = lat;
     this.lng = lng;
@@ -35,9 +36,38 @@ Sunrise = function (element, lat, lng, year) {
         .y0(function(d) { return this.yScale(-1 * d / 2 + 12); })
         .y1(function(d) { return this.yScale(d / 2 + 12); });
 
+    // will be filled out later, in drawEnvelope()
     this.path = this.svg.append('path')
         .attr('class', 'envelope')
         .style('fill', '#cccc77');
+
+    // labels
+    var months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug',
+                   'Sep', 'Oct', 'Nov', 'Dec'];
+    var monthsScale = d3.scale.linear()
+        .domain([0, 12]) // array indices
+        .range([0, this.width]);
+
+    var labelEnter = this.svg.append('g')
+        .attr('transform', 'translate(0, ' + this.height + ')')
+        .selectAll('text')
+        .data(months)
+        .enter().append('g');
+
+    
+    labelEnter.append('text')
+        .text(String)
+        .attr('transform', function (d, i) {
+            return 'translate(' + monthsScale(i) + ', 0)';
+        });
+
+    labelEnter.append('polyline')
+        .attr('stroke', '#999999')
+        .attr('points', function (d, i) {
+            var x = monthsScale(i);
+            var span = instance.height / 15;
+            return x + ',' + span + ' ' + x + ',-' + span;
+        });
 
     this.drawEnvelope();
 };
@@ -136,8 +166,7 @@ Sunrise.getSpan = function (date, lat, lng) {
         Sunrise.radToDeg(
             Math.acos(
                 (Math.sin(Sunrise.degToRad(-0.83)) - 
-                 Math.sin(Sunrise.degToRad(lat)) *
-                 sindelta) /
+                 (Math.sin(Sunrise.degToRad(lat)) * sindelta)) /
                     (Math.cos(Sunrise.degToRad(lat)) *
                      Math.cos(Math.asin(sindelta)))
             )
@@ -154,7 +183,7 @@ Sunrise.getSpan = function (date, lat, lng) {
 };
 
 Sunrise.getEnvelope = function (lat, lng, year) {
-    var date = new Date(year, 0, 0, 12, 0, 0, 0);
+    var date = new Date(year, 0, 0, 4, 0, 0, 0);
 
     var envelope = [];
 
@@ -168,4 +197,22 @@ Sunrise.getEnvelope = function (lat, lng, year) {
     return envelope;
 };
 
-s = new Sunrise('viz', 37, -122, 2012);
+s = new Sunrise('viz', 37, 0, 2012);
+
+d3.selectAll('#lat').on('change', function () {
+    d3.select('#latReadout').html(this.value + '&deg;');
+    s.lat = this.value; 
+    s.drawEnvelope(); 
+});
+
+/*
+d3.selectAll('#lng').on('focusout', function () {
+    s.lng = this.value; 
+    s.drawEnvelope(); 
+});
+
+d3.selectAll('#year').on('focusout', function () {
+    s.year = this.value; 
+    s.drawEnvelope(); 
+});
+*/

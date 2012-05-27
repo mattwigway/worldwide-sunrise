@@ -3,9 +3,33 @@
   <head>
     <title>Test of D3</title>
     <script src="http://d3js.org/d3.v2.js"></script>
+    <script src="html5slider.js"></script>
+    <link href="bootstrap/css/bootstrap.min.css" rel="stylesheet" />
+    
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+
   </head>
   <body>
-    <div id="viz"></div>
+    <div class="container">
+      <div class="hero-unit">
+        <label for="lat">Latitude</label>
+        <input type="range" min="-65" max="65" value="37" id="lat" />
+        <span id="latReadout"/>
+        <br/>
+<!--
+        <label for="lng">Longitude</label>
+        <input type="text" size="8" id="lng" value="-122" />
+        <br/>
+
+        <label for="year">Year</label>
+        <input type="text" id="year" size="4" value="2012" />
+-->
+      </div>
+      <div class="row">
+        <div id="viz" class="span12"></div>
+      </div>
+    </div>
+    <script src="bootstrap/js/bootstrap.min.js"></script>
     <script src="sunrise.js"></script>
   </body>
 </html>
