@@ -84,11 +84,11 @@ Sunrise = function (element, lat, lng) {
         });
 
     labelEnter.append('polyline')
-        .attr('stroke', '#999999')
+        .attr('stroke', '#bbbbbb')
 	.attr('shape-rendering', 'crispEdges')
         .attr('points', function (d, i) {
             var x = monthsScale(i);
-            var span = instance.height / 15;
+            var span = instance.height / 32;
             return x + ',' + span + ' ' + x + ',-' + span;
         });
 
