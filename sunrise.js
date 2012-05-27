@@ -47,7 +47,8 @@ Sunrise = function (element, lat, lng) {
         .range([0, this.height]);
 
     this.xScale = d3.scale.linear()
-        .domain([0, 364])
+    // 2012 - the example year - is a leap year
+        .domain([0, 365])
         .range([0, this.width]);
 
     this.area = d3.svg.area()
@@ -63,12 +64,22 @@ Sunrise = function (element, lat, lng) {
         .style('fill', '#dddd66')
 	.attr('opacity', '0.9');
 
-    // labels
-    var months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug',
-                   'Sep', 'Oct', 'Nov', 'Dec'];
-    var monthsScale = d3.scale.linear()
-        .domain([0, 12]) // array indices
-        .range([0, this.width]);
+    // labels, numbers are the start day of each month, for proper scaling
+    // I support constant-length months, or perhaps months should be abolished
+    var months = [
+	['Jan', 0],
+	['Feb', 31],
+	['Mar', 60],
+	['Apr', 91],
+	['May', 122],
+	['Jun', 153],
+	['Jul', 183],
+	['Aug', 214],
+        ['Sep', 245],
+	['Oct', 275],
+	['Nov', 306],
+	['Dec', 336]
+	];
 
     var labelEnter = this.svg.append('g')
         .attr('transform', 'translate(0, ' + this.height + ')')
@@ -78,16 +89,18 @@ Sunrise = function (element, lat, lng) {
 
     
     labelEnter.append('text')
-        .text(String)
-        .attr('transform', function (d, i) {
-            return 'translate(' + monthsScale(i) + ', 0)';
+        .text(function (d) { return d[0]; })
+        .attr('transform', function (d) {
+	    // translate according to varying month length
+            return 'translate(' + instance.xScale(d[1]) + ', 0)';
         });
 
     labelEnter.append('polyline')
         .attr('stroke', '#bbbbbb')
 	.attr('shape-rendering', 'crispEdges')
-        .attr('points', function (d, i) {
-            var x = monthsScale(i);
+        .attr('points', function (d) {
+	    // varying month length
+            var x = instance.xScale(d[1]);
             var span = instance.height / 32;
             return x + ',' + span + ' ' + x + ',-' + span;
         });
@@ -182,7 +195,7 @@ Sunrise.getSpan = function (jdate, lat, lng) {
 Sunrise.getEnvelope = function (lat, lng) {
     var envelope = [];
 
-    for (var i = 0; i < 365; i++) {
+    for (var i = 0; i < 366; i++) {
 	// Julian day for Jan 1, 2012
         envelope.push(Sunrise.getSpan(i + 2455928, lat, lng));
     }
