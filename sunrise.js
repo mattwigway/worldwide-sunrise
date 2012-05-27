@@ -29,7 +29,8 @@ Sunrise = function (element, lat, lng) {
 	.attr('class', 'hourLine');
    
     hourEnter.append('polyline')
-	.attr('stroke', '#000000')
+	.attr('shape-rendering', 'crispEdges')
+	.attr('stroke', '#777777')
 	.attr('points', function (d, i) {
 	    var y = hourScale(i);
 	    return '0,' +  y + ' ' + instance.width + ',' + y;
@@ -84,6 +85,7 @@ Sunrise = function (element, lat, lng) {
 
     labelEnter.append('polyline')
         .attr('stroke', '#999999')
+	.attr('shape-rendering', 'crispEdges')
         .attr('points', function (d, i) {
             var x = monthsScale(i);
             var span = instance.height / 15;
