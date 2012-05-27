@@ -193,7 +193,15 @@ Sunrise.getEnvelope = function (lat, lng) {
 s = new Sunrise('viz', 37, 0);
 
 d3.selectAll('#lat').on('change', function () {
-    d3.select('#latReadout').html(this.value + '&deg;');
+    var humanReadable;
+    if (this.value == 0)
+	humanReadable = '0&deg;'
+    else if (this.value > 0)
+	humanReadable = this.value + '&deg; N';
+    else
+	humanReadable = (-1 * this.value) + '&deg; S';
+
+    d3.select('#latReadout').html(humanReadable);
     s.lat = this.value; 
     s.drawEnvelope(); 
 });
