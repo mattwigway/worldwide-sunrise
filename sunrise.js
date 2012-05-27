@@ -47,7 +47,7 @@ Sunrise = function (element, lat, lng) {
         .range([0, this.height]);
 
     this.xScale = d3.scale.linear()
-        .domain([0, 365])
+        .domain([0, 364])
         .range([0, this.width]);
 
     this.area = d3.svg.area()
@@ -60,7 +60,7 @@ Sunrise = function (element, lat, lng) {
     // will be filled out later, in drawEnvelope()
     this.path = this.svg.append('path')
         .attr('class', 'envelope')
-        .style('fill', '#cccc77')
+        .style('fill', '#dddd66')
 	.attr('opacity', '0.9');
 
     // labels
@@ -123,7 +123,7 @@ Sunrise.radToDeg = function (radians) {
 // http://en.wikipedia.org/wiki/Sunrise_equation
 
 /**
- * Calculate the Julian cycle given longitude east of Greenwich
+ * Calculate span of day length
  * @param {Number} jdate the Julain day
  * @param {Number} lat the latitude of the observer
  * @param {Number} lng the longitude _east of Greenwich_ of the observer
