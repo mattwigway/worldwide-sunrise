@@ -1,10 +1,10 @@
-Sunrise = function (element, lat, lng, year) {
+Sunrise = function (element, lat, lng) {
     var instance = this;
     this.width = 940; 
     this.height = 600;
     this.lat = lat;
     this.lng = lng;
-    this.year = year;
+    this.year = 2012; // note this matches the Julian day in getEnvelope
 
     this.svg = d3.select('#' + element)
         .append('svg')
@@ -188,7 +188,7 @@ Sunrise.getEnvelope = function (lat, lng) {
     return envelope;
 };
 
-s = new Sunrise('viz', 37, 0, 2012);
+s = new Sunrise('viz', 37, 0);
 
 d3.selectAll('#lat').on('change', function () {
     d3.select('#latReadout').html(this.value + '&deg;');
@@ -199,11 +199,6 @@ d3.selectAll('#lat').on('change', function () {
 /*
 d3.selectAll('#lng').on('focusout', function () {
     s.lng = this.value; 
-    s.drawEnvelope(); 
-});
-
-d3.selectAll('#year').on('focusout', function () {
-    s.year = this.value; 
     s.drawEnvelope(); 
 });
 */
