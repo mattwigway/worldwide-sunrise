@@ -105,11 +105,50 @@ Sunrise = function (element, lat, lng) {
             return x + ',' + span + ' ' + x + ',-' + span;
         });
 
+    this.currentDate = instance.svg.append('polyline')
+        .attr('class', 'currentDay')
+        .attr('transform', 'translate(0,' + (instance.height / 2) + ')')
+        .attr('stroke', '#aaaaaa')
+        .attr('shape-rendering', 'crispEdges');
+
+    this.path.on('mousemove', function (d) {
+        var x = d3.mouse(this)[0];
+        // get the day number
+        var dayOfYear = Math.round(instance.xScale.invert(x));
+
+        // Jan 1, 2012
+        var dateRep = new Date(Sunrise.YEAR, 0, 1);
+        dateRep.setDate(dayOfYear); // will wrap
+
+        var dateString = d3.time.format('%B %e')(dateRep);
+
+        console.log(dateString);
+
+        var span = Sunrise.getSpan(dayOfYear + Sunrise.FIRST_DAY_OF_YEAR,
+                                   instance.lat,
+                                   instance.lng);
+
+        instance.currentDate
+            .attr('opacity', 1)
+            .attr('points', function(d) {
+                return x + ',' + instance.yScale(span / 2) + ' ' +
+                    x + ',' + instance.yScale(-1 * span / 2);
+            });
+        
+    });
+    
     this.drawEnvelope();
 };
 
+// constants
+Sunrise.YEAR = 2012;
+Sunrise.FIRST_DAY_OF_YEAR = 2455928;
+
 Sunrise.prototype.drawEnvelope = function () {
     var envelope = Sunrise.getEnvelope(this.lat, this.lng, this.year);
+
+    // hide this so it's not the wrong length
+    this.currentDate.attr('opacity', 0);
 
     this.path
         //.transition()
@@ -196,14 +235,13 @@ Sunrise.getEnvelope = function (lat, lng) {
     var envelope = [];
 
     for (var i = 0; i < 366; i++) {
-	// Julian day for Jan 1, 2012
-        envelope.push(Sunrise.getSpan(i + 2455928, lat, lng));
+        envelope.push(Sunrise.getSpan(i + Sunrise.FIRST_DAY_OF_YEAR, lat, lng));
     }
 
     return envelope;
 };
 
-s = new Sunrise('viz', 37, 0);
+s = new Sunrise('viz', 0, 0);
 
 d3.selectAll('#lat').on('change', function () {
     var humanReadable;
