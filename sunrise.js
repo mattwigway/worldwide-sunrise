@@ -1,11 +1,3 @@
-/** 
- * Find the Julian Day Number
- * @param {Date} a Gregorian date object
- */
-
-//if (typeof sunrise == 'undefined')
-//    sunrise = {};
-
 Sunrise = function (element, lat, lng, year) {
     var instance = this;
     this.width = 940; 
@@ -20,6 +12,34 @@ Sunrise = function (element, lat, lng, year) {
         .attr('height', this.height)
         .append('g')
         .attr('transform', 'translate(0, -' + (this.height / 2) + ')');
+
+    // draw the hour lines behind the envelope
+    // noon is blank because it is behind the 'Jan' label
+    var hours = ['12a', '3a', '6a', '9a', '', '3p', '6p', '9p', '12a'];
+    
+    var hourScale = d3.scale.linear()
+	.domain([0, 8])
+	.range([0, this.height]);
+
+    var hourEnter = this.svg.append('g')
+	.attr('transform', 'translate(0, ' + this.height / 2 + ')')
+	.selectAll('g.hourLine')
+	.data(hours)
+	.enter().append('g')
+	.attr('class', 'hourLine');
+   
+    hourEnter.append('polyline')
+	.attr('stroke', '#000000')
+	.attr('points', function (d, i) {
+	    var y = hourScale(i);
+	    return '0,' +  y + ' ' + instance.width + ',' + y;
+	});
+
+    hourEnter.append('text')
+	.attr('transform', function (d, i) {
+	    return 'translate(0,' + (hourScale(i) - 2)  + ')';
+	})
+	.text(String);
 
     this.yScale = d3.scale.linear()
         .domain([-12, 12])
@@ -39,7 +59,8 @@ Sunrise = function (element, lat, lng, year) {
     // will be filled out later, in drawEnvelope()
     this.path = this.svg.append('path')
         .attr('class', 'envelope')
-        .style('fill', '#cccc77');
+        .style('fill', '#cccc77')
+	.attr('opacity', '0.9');
 
     // labels
     var months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug',
@@ -50,7 +71,7 @@ Sunrise = function (element, lat, lng, year) {
 
     var labelEnter = this.svg.append('g')
         .attr('transform', 'translate(0, ' + this.height + ')')
-        .selectAll('text')
+        .selectAll('g')
         .data(months)
         .enter().append('g');
 
@@ -81,31 +102,6 @@ Sunrise.prototype.drawEnvelope = function () {
 };
 
 // STATIC FUNCTIONS BELOW HERE
-// Assumes UTC
-Sunrise.getJulianDay  = function (date) {
-    // http://en.wikipedia.org/wiki/Julian_date
-
-    // Note: JS zero-based month numbers
-    var a = Math.floor((14 - date.getMonth() + 1) / 12);
-    var y = date.getFullYear() + 4800 - a;
-    var m = date.getMonth() + 1 + (12 * a) - 3;
-
-    var julianDayNumber = date.getDate() + 
-        Math.floor((153 * m + 2) / 5) + 
-        365 * y +
-        Math.floor(y / 4) -
-        Math.floor(y / 100) +
-        Math.floor(y / 400) -
-        32045;
-
-    var julianDay = julianDayNumber +
-        (date.getHours() - 12) / 24 +
-        date.getMinutes() / 1440 +
-        date.getSeconds() / 86400;
-
-    return julianDayNumber;
-};
-
 /**
  * convert degrees to radians
  * @param {Number} degrees
@@ -126,12 +122,11 @@ Sunrise.radToDeg = function (radians) {
 
 /**
  * Calculate the Julian cycle given longitude east of Greenwich
- * @param {Date} date the date
+ * @param {Number} jdate the Julain day
  * @param {Number} lat the latitude of the observer
  * @param {Number} lng the longitude _east of Greenwich_ of the observer
  */
-Sunrise.getSpan = function (date, lat, lng) {
-    var jdate = Sunrise.getJulianDay(date);
+Sunrise.getSpan = function (jdate, lat, lng) {
 
     var l_w = -1 * lng;
     var nstar = jdate - 2451545.0009 - l_w / 360;
@@ -182,16 +177,12 @@ Sunrise.getSpan = function (date, lat, lng) {
     return span;
 };
 
-Sunrise.getEnvelope = function (lat, lng, year) {
-    var date = new Date(year, 0, 0, 4, 0, 0, 0);
-
+Sunrise.getEnvelope = function (lat, lng) {
     var envelope = [];
 
     for (var i = 0; i < 365; i++) {
-        envelope.push(Sunrise.getSpan(date, lat, lng));
-
-        // will wrap
-        date.setDate(date.getDate() + 1);
+	// Julian day for Jan 1, 2012
+        envelope.push(Sunrise.getSpan(i + 2455928, lat, lng));
     }
 
     return envelope;
