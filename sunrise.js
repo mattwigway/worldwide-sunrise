@@ -105,11 +105,39 @@ Sunrise = function (element, lat, lng) {
             return x + ',' + span + ' ' + x + ',-' + span;
         });
 
+    this.popOver = instance.svg.append('g');
+
+    // background
+    this.popOver.append('rect')
+        .attr('x', '0').attr('y', '0') // later translated
+        .attr('width', '300')
+        .attr('height', '120')
+        .attr('rx', '15') // rounded corners
+        .attr('fill', '#dfdddd')
+        .attr('opacity', '.8');
+    
+
+    // build up the data window
+    this.popOver.append('text').attr('id', 'date')
+        .attr('transform', 'translate(30, 30)');
+    this.popOver.append('text').text('Sunrise: ')
+        .attr('transform', 'translate(30, 50)');
+    this.popOver.append('text').attr('id', 'rise')
+        .attr('transform', 'translate(90, 50)');
+    this.popOver.append('text').text('Sunset: ')
+        .attr('transform', 'translate(30, 70)');
+    this.popOver.append('text').attr('id', 'set')
+        .attr('transform', 'translate(90, 70)');
+
+    this.popOver.append('text').text('Note: times relative to solar noon')
+        .attr('transform', 'translate(30, 90)');
+
     this.currentDate = instance.svg.append('polyline')
         .attr('class', 'currentDay')
         .attr('transform', 'translate(0,' + (instance.height / 2) + ')')
         .attr('stroke', '#aaaaaa')
-        .attr('shape-rendering', 'crispEdges');
+        .attr('shape-rendering', 'crispEdges')
+        .attr('pointer-events', 'none'); // prevent mouseout bubbling to path
 
     this.path.on('mousemove', function (d) {
         var x = d3.mouse(this)[0];
@@ -120,13 +148,47 @@ Sunrise = function (element, lat, lng) {
         var dateRep = new Date(Sunrise.YEAR, 0, 1);
         dateRep.setDate(dayOfYear); // will wrap
 
-        var dateString = d3.time.format('%B %e')(dateRep);
-
-        console.log(dateString);
+        var dateString = d3.time.format(Sunrise.DATE_FORMAT)(dateRep);
 
         var span = Sunrise.getSpan(dayOfYear + Sunrise.FIRST_DAY_OF_YEAR,
                                    instance.lat,
                                    instance.lng);
+
+        instance.popOver.select('#date').text(dateString);
+
+
+        // this date just represents solar noon on a random day, for time calculations
+        var timeTemp = new Date(2012, 0, 1, 12, 0);
+        var noon = timeTemp.getHours();
+
+        var fromNoon = span / 2;
+
+        // sunrise
+        timeTemp.setHours(noon - Math.ceil(span / 2));
+        // we're counting from the end of the hour here
+        timeTemp.setMinutes(60 - (fromNoon - Math.floor(fromNoon)) * 60);
+
+        var fmt = d3.time.format(Sunrise.TIME_FORMAT);
+        instance.popOver.select('#rise').text(fmt(timeTemp));
+
+        // sunset
+        // don't divide by two, we're moving the timeTemp from sunrise to sunset
+        timeTemp.setHours(noon + Math.floor(fromNoon));
+        // we're counting from the start of the hour here
+        timeTemp.setMinutes((fromNoon - Math.floor(fromNoon)) * 60);
+
+        instance.popOver.select('#set').text(fmt(timeTemp));
+
+        // put it on the right
+        if (instance.width - x > 350)
+            instance.popOver.attr('transform', 'translate(' + (x + 25) + ', ' + 
+                                  (instance.height - 225) + ')');
+        else
+            // put it on the left
+            instance.popOver.attr('transform', 'translate(' + (x - 325) + ', ' + 
+                                  (instance.height - 225) + ')');
+
+        instance.popOver.transition().attr('opacity', '.8');
 
         instance.currentDate
             .attr('opacity', 1)
@@ -136,19 +198,33 @@ Sunrise = function (element, lat, lng) {
             });
         
     });
+
+    this.path.on('mouseout', function () {
+        instance.hideCurrentDate();
+    });
     
     this.drawEnvelope();
 };
 
+
+// static config variables
+Sunrise.DATE_FORMAT = '%B %d';
+Sunrise.TIME_FORMAT = '%I:%M %p';
 // constants
 Sunrise.YEAR = 2012;
 Sunrise.FIRST_DAY_OF_YEAR = 2455928;
 
+Sunrise.prototype.hideCurrentDate = function () {
+    this.currentDate.transition().attr('opacity', 0);
+    this.popOver.transition().attr('opacity', 0);
+};
+
 Sunrise.prototype.drawEnvelope = function () {
+    console.log('drawing envelope');
     var envelope = Sunrise.getEnvelope(this.lat, this.lng, this.year);
 
     // hide this so it's not the wrong length
-    this.currentDate.attr('opacity', 0);
+    this.hideCurrentDate();
 
     this.path
         //.transition()
