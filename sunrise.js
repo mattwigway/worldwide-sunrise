@@ -157,8 +157,9 @@ Sunrise = function (element, lat, lng) {
 
     this.path.on('mousemove', function (d) {
         var x = d3.mouse(this)[0];
-        // get the day number
-        var dayOfYear = Math.round(instance.xScale.invert(x));
+        // get the day number, adding 1 to map from 1 to 366 not 0 to 365
+        // match how JavaScript does it.
+        var dayOfYear = Math.round(instance.xScale.invert(x)) + 1;
 
         // Jan 1, 2012
         var dateRep = new Date(Sunrise.YEAR, 0, 1);
